@@ -8,10 +8,11 @@ module.exports = function(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, 'your_jwt_secret'); // Make sure this matches the secret used in login
+    const decoded = jwt.verify(token, 'your_jwt_secret');
     req.user = decoded.user;
     next();
   } catch (err) {
+    console.error('Token verification error:', err);
     res.status(401).json({ message: 'Token is not valid' });
   }
 };

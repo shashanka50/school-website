@@ -43,6 +43,7 @@ function StudentDashboard() {
         const response = await axios.get('/api/student/details', {
           headers: { 'x-auth-token': token }
         });
+        console.log('Fetched student details:', response.data);
         setStudentDetails(response.data);
         setLoading(false);
       } catch (err) {
@@ -66,22 +67,22 @@ function StudentDashboard() {
   return (
     <Container className={classes.root}>
       <Typography variant="h4" className={classes.title}>
-        Welcome, {studentDetails.firstName} {studentDetails.lastName}!
+        Welcome, {studentDetails?.firstName} {studentDetails?.lastName}!
       </Typography>
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Paper className={classes.paper}>
             <Typography variant="h6" gutterBottom>Your Details</Typography>
-            <Typography>Grade: {studentDetails.grade}</Typography>
-            <Typography>Section: {studentDetails.section}</Typography>
-            <Typography>Roll Number: {studentDetails.rollNumber}</Typography>
-            <Typography>Date of Birth: {new Date(studentDetails.dateOfBirth).toLocaleDateString()}</Typography>
-            <Typography>Blood Group: {studentDetails.bloodGroup}</Typography>
-            <Typography>Parent Name: {studentDetails.parentName}</Typography>
-            <Typography>Parent Contact: {studentDetails.parentContact}</Typography>
-            <Typography>Address: {studentDetails.address}</Typography>
-            <Typography>Emergency Contact: {studentDetails.emergencyContact}</Typography>
-            {studentDetails.medicalConditions && (
+            <Typography>Grade: {studentDetails?.grade}</Typography>
+            <Typography>Section: {studentDetails?.section}</Typography>
+            <Typography>Roll Number: {studentDetails?.rollNumber}</Typography>
+            <Typography>Date of Birth: {studentDetails?.dateOfBirth ? new Date(studentDetails.dateOfBirth).toLocaleDateString() : 'N/A'}</Typography>
+            <Typography>Blood Group: {studentDetails?.bloodGroup}</Typography>
+            <Typography>Parent Name: {studentDetails?.parentName}</Typography>
+            <Typography>Parent Contact: {studentDetails?.parentContact}</Typography>
+            <Typography>Address: {studentDetails?.address}</Typography>
+            <Typography>Emergency Contact: {studentDetails?.emergencyContact}</Typography>
+            {studentDetails?.medicalConditions && (
               <Typography>Medical Conditions: {studentDetails.medicalConditions}</Typography>
             )}
           </Paper>

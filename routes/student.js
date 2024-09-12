@@ -10,10 +10,13 @@ router.get('/dashboard', (req, res) => {
 
 router.get('/details', auth, async (req, res) => {
   try {
-    const student = await Student.findOne({ user: req.user.id });
+    console.log('Fetching student details for user:', req.user.id);
+    const student = await Student.findById(req.user.id).select('-password');
     if (!student) {
+      console.log('Student not found for user:', req.user.id);
       return res.status(404).json({ message: 'Student not found' });
     }
+    console.log('Student details found:', student);
     res.json(student);
   } catch (error) {
     console.error('Error fetching student details:', error);

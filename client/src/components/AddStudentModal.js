@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Grid } from '@material-ui/core';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Grid, Typography } from '@material-ui/core';
 import axios from 'axios';
 
 function AddStudentModal({ open, handleClose }) {
@@ -20,18 +20,24 @@ function AddStudentModal({ open, handleClose }) {
     medicalConditions: ''
   });
 
+  const [error, setError] = useState(null);
+
   const handleChange = (e) => {
     setStudentData({ ...studentData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null); // Clear previous errors
     try {
       const response = await axios.post('/api/auth/register/student', studentData);
       console.log(response.data);
       handleClose();
+      // Show success message
     } catch (error) {
       console.error('Error adding student:', error);
+      const errorMessage = error.response?.data?.message || 'An error occurred while adding the student';
+      setError(errorMessage);
     }
   };
 
@@ -40,6 +46,11 @@ function AddStudentModal({ open, handleClose }) {
       <DialogTitle>Add New Student</DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent>
+          {error && (
+            <Typography color="error" gutterBottom>
+              {error}
+            </Typography>
+          )}
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Grid } from '@material-ui/core';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Grid, Typography } from '@material-ui/core';
 import axios from 'axios';
 
 function AddTeacherModal({ open, handleClose }) {
@@ -23,14 +23,25 @@ function AddTeacherModal({ open, handleClose }) {
     setTeacherData({ ...teacherData, [e.target.name]: e.target.value });
   };
 
+  const [error, setError] = useState(null); // Initialize error state
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null); // Clear previous errors
     try {
-      const response = await axios.post('/api/auth/register/teacher', teacherData);
+      const token = localStorage.getItem('token'); // Get the token from localStorage
+      const response = await axios.post('/api/auth/register/teacher', teacherData, {
+        headers: {
+          'x-auth-token': token // Include the token in the request headers
+        }
+      });
       console.log(response.data);
       handleClose();
+      // Show success message
     } catch (error) {
       console.error('Error adding teacher:', error);
+      const errorMessage = error.response?.data?.message || 'An error occurred while adding the teacher';
+      setError(errorMessage);
     }
   };
 

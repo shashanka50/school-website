@@ -7,7 +7,6 @@ const studentRoutes = require('./routes/student');
 const teacherRoutes = require('./routes/teacher');
 
 // Import models
-require('./models/User');
 require('./models/Student');
 require('./models/Teacher');
 require('./models/Admin');
@@ -36,6 +35,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/school', schoolRoutes);
 app.use('/api/teacher', teacherRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

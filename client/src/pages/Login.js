@@ -23,6 +23,7 @@ function Login() {
       const response = await axios.post('/api/auth/login', { username, password, userType });
       console.log('Login response:', response.data);
       const { token, user } = response.data;
+      localStorage.setItem('token', token); // Store the token in localStorage
       login(user, token);
       history.push(`/${userType}-dashboard`);
     } catch (error) {
