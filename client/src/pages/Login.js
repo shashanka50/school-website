@@ -19,12 +19,14 @@ function Login() {
     setError('');
 
     try {
+      console.log('Attempting login with:', { username, password, userType });
       const response = await axios.post('/api/auth/login', { username, password, userType });
+      console.log('Login response:', response.data);
       const { token, user } = response.data;
       login(user, token);
       history.push(`/${userType}-dashboard`);
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error:', error.response ? error.response.data : error.message);
       setError('Invalid username or password');
       setOpenSnackbar(true);
     }

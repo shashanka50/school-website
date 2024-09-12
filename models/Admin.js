@@ -14,7 +14,6 @@ const AdminSchema = new mongoose.Schema({
   contactNumber: { type: String, required: true },
   email: { type: String, required: true },
   address: { type: String, required: true },
-  // Add more fields as needed
 });
 
 module.exports = mongoose.model('Admin', AdminSchema);

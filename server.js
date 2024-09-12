@@ -6,6 +6,12 @@ const schoolRoutes = require('./routes/school');
 const studentRoutes = require('./routes/student');
 const teacherRoutes = require('./routes/teacher');
 
+// Import models
+require('./models/User');
+require('./models/Student');
+require('./models/Teacher');
+require('./models/Admin');
+
 const app = express();
 
 // Middleware

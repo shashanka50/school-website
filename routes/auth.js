@@ -1,27 +1,52 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const auth = require('../middleware/auth');
-const jwt = require('jsonwebtoken');
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
 const Admin = require('../models/Admin');
+const bcrypt = require('bcryptjs');
+const auth = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 
 // TODO: Implement authentication routes
 router.post('/login', async (req, res) => {
   const { username, password, userType } = req.body;
   
   try {
-    const user = await User.findOne({ username, userType }).populate('profile');
+    console.log(`Attempting login for username: ${username}, userType: ${userType}`);
+    
+    // First, find the user without filtering by userType
+    const user = await User.findOne({ username });
     if (!user) {
-      return res.status(400).json({ message: 'Invalid username or user type' });
+      console.log(`User not found: ${username}`);
+      return res.status(400).json({ message: 'Invalid username' });
+    }
+    
+    console.log(`User found: ${user._id}, userType: ${user.userType}`);
+    
+    // Check if the found user's type matches the requested type
+    if (user.userType !== userType) {
+      console.log(`User type mismatch: expected ${userType}, found ${user.userType}`);
+      return res.status(400).json({ message: 'Invalid user type' });
     }
     
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log(`Password mismatch for user: ${user._id}`);
       return res.status(400).json({ message: 'Incorrect password' });
     }
+    
+    const populatedUser = await User.findById(user._id).populate({
+      path: 'profile',
+      model: userType.charAt(0).toUpperCase() + userType.slice(1)
+    });
+    
+    if (!populatedUser.profile) {
+      console.log(`Profile not found for user: ${user._id}`);
+      return res.status(400).json({ message: 'User profile not found' });
+    }
+    
+    console.log(`Login successful for user: ${user._id}`);
     
     const payload = {
       user: {
