@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Container, Typography, Grid, Paper, makeStyles, CircularProgress } from '@material-ui/core';
+import { Container, Typography, Grid, Paper, makeStyles, CircularProgress, Avatar, Divider } from '@material-ui/core';
+import { School, Notifications, Person, Home, Phone, LocalHospital } from '@material-ui/icons';
 import { AuthContext } from '../contexts/AuthContext';
 import axios from 'axios';
 
@@ -7,18 +8,49 @@ const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
     padding: theme.spacing(3),
+    backgroundColor: '#f5f5f5',
+    minHeight: '100vh',
   },
   paper: {
-    padding: theme.spacing(2),
-    textAlign: 'left',
+    padding: theme.spacing(3),
+    height: '100%',
     color: theme.palette.text.secondary,
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: '0 3px 5px 2px rgba(0, 0, 0, .1)',
+    transition: 'box-shadow 0.3s ease-in-out',
+    '&:hover': {
+      boxShadow: '0 5px 15px 5px rgba(0, 0, 0, .07)',
+    },
   },
   title: {
+    marginBottom: theme.spacing(3),
+    color: theme.palette.primary.main,
+    fontWeight: 600,
+  },
+  avatar: {
+    width: theme.spacing(12),
+    height: theme.spacing(12),
     marginBottom: theme.spacing(2),
+  },
+  detailItem: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: theme.spacing(2),
+  },
+  icon: {
+    marginRight: theme.spacing(2),
+    color: theme.palette.secondary.main,
   },
   noticeTitle: {
     color: theme.palette.primary.main,
     marginBottom: theme.spacing(1),
+    fontWeight: 500,
+  },
+  noticeContent: {
+    marginBottom: theme.spacing(2),
+  },
+  divider: {
+    margin: theme.spacing(2, 0),
   },
 }));
 
@@ -57,11 +89,19 @@ function StudentDashboard() {
   }, []);
 
   if (loading) {
-    return <CircularProgress />;
+    return (
+      <Container className={classes.root} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <CircularProgress />
+      </Container>
+    );
   }
 
   if (error) {
-    return <Typography color="error">{error}</Typography>;
+    return (
+      <Container className={classes.root}>
+        <Typography color="error">{error}</Typography>
+      </Container>
+    );
   }
 
   return (
@@ -69,36 +109,55 @@ function StudentDashboard() {
       <Typography variant="h4" className={classes.title}>
         Welcome, {studentDetails?.firstName} {studentDetails?.lastName}!
       </Typography>
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
           <Paper className={classes.paper}>
+            <Avatar className={classes.avatar} src={studentDetails?.profilePicture || '/default-avatar.png'} />
             <Typography variant="h6" gutterBottom>Your Details</Typography>
-            <Typography>Grade: {studentDetails?.grade}</Typography>
-            <Typography>Section: {studentDetails?.section}</Typography>
-            <Typography>Roll Number: {studentDetails?.rollNumber}</Typography>
-            <Typography>Date of Birth: {studentDetails?.dateOfBirth ? new Date(studentDetails.dateOfBirth).toLocaleDateString() : 'N/A'}</Typography>
-            <Typography>Blood Group: {studentDetails?.bloodGroup}</Typography>
-            <Typography>Parent Name: {studentDetails?.parentName}</Typography>
-            <Typography>Parent Contact: {studentDetails?.parentContact}</Typography>
-            <Typography>Address: {studentDetails?.address}</Typography>
-            <Typography>Emergency Contact: {studentDetails?.emergencyContact}</Typography>
+            <div className={classes.detailItem}>
+              <School className={classes.icon} />
+              <Typography>Grade: {studentDetails?.grade} | Section: {studentDetails?.section}</Typography>
+            </div>
+            <div className={classes.detailItem}>
+              <Person className={classes.icon} />
+              <Typography>Roll Number: {studentDetails?.rollNumber}</Typography>
+            </div>
+            <div className={classes.detailItem}>
+              <Home className={classes.icon} />
+              <Typography>Address: {studentDetails?.address}</Typography>
+            </div>
+            <div className={classes.detailItem}>
+              <Phone className={classes.icon} />
+              <Typography>Emergency Contact: {studentDetails?.emergencyContact}</Typography>
+            </div>
+            <div className={classes.detailItem}>
+              <LocalHospital className={classes.icon} />
+              <Typography>Blood Group: {studentDetails?.bloodGroup}</Typography>
+            </div>
             {studentDetails?.medicalConditions && (
-              <Typography>Medical Conditions: {studentDetails.medicalConditions}</Typography>
+              <div className={classes.detailItem}>
+                <LocalHospital className={classes.icon} />
+                <Typography>Medical Conditions: {studentDetails.medicalConditions}</Typography>
+              </div>
             )}
           </Paper>
         </Grid>
         <Grid item xs={12} md={6}>
           <Paper className={classes.paper}>
-            <Typography variant="h6" gutterBottom>Notifications</Typography>
+            <Typography variant="h6" gutterBottom>
+              <Notifications className={classes.icon} style={{ verticalAlign: 'middle' }} />
+              Notifications
+            </Typography>
             {notices.map((notice) => (
-              <div key={notice.id}>
+              <React.Fragment key={notice.id}>
                 <Typography variant="subtitle1" className={classes.noticeTitle}>
                   {notice.title}
                 </Typography>
-                <Typography variant="body2" paragraph>
+                <Typography variant="body2" className={classes.noticeContent}>
                   {notice.content}
                 </Typography>
-              </div>
+                <Divider className={classes.divider} />
+              </React.Fragment>
             ))}
           </Paper>
         </Grid>
