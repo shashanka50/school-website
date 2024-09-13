@@ -86,9 +86,9 @@ function Login() {
       console.log('Login response:', response.data);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
-      login(user, token);
+      login({ ...user, role: currentUserType }); // Store the user's role
       handleCloseModal();
-      history.push(`/${currentUserType}-dashboard`);
+      history.push('/'); // Redirect to home page after login
     } catch (error) {
       console.error('Login error:', error.response ? error.response.data : error.message);
       setError('Invalid username or password');
