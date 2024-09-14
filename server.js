@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth');
 const schoolRoutes = require('./routes/school');
 const studentRoutes = require('./routes/student');
 const teacherRoutes = require('./routes/teacher');
+const adminRoutes = require('./routes/admin');
 
 // Import models
 require('./models/Student');
@@ -35,6 +36,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/school', schoolRoutes);
 app.use('/api/teacher', teacherRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

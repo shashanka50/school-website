@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Container, Typography, Grid, Paper, makeStyles, CircularProgress, Avatar, Divider } from '@material-ui/core';
+import { Container, Typography, Grid, Paper, makeStyles, CircularProgress, Avatar, Divider, Chip } from '@material-ui/core';
 import { Person, Email, Phone, Home, School, Work, DateRange, LocalLibrary } from '@material-ui/icons';
 import { AuthContext } from '../contexts/AuthContext';
 import axios from 'axios';
@@ -49,6 +49,15 @@ const useStyles = makeStyles((theme) => ({
   },
   divider: {
     margin: theme.spacing(2, 0),
+  },
+  qualificationsContainer: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: theme.spacing(1),
+    marginTop: theme.spacing(2),
+  },
+  qualificationChip: {
+    margin: theme.spacing(0.5),
   },
 }));
 
@@ -141,12 +150,18 @@ function TeacherDashboard() {
         <Grid item xs={12} md={6}>
           <Paper className={classes.paper}>
             <Typography variant="h6" gutterBottom>Qualifications</Typography>
-            {teacherDetails?.qualifications.map((qualification, index) => (
-              <div key={index} className={classes.detailItem}>
-                <LocalLibrary className={classes.icon} />
-                <Typography>{qualification}</Typography>
-              </div>
-            ))}
+            <div className={classes.qualificationsContainer}>
+              {teacherDetails?.qualifications.map((qualification, index) => (
+                <Chip
+                  key={index}
+                  icon={<LocalLibrary />}
+                  label={`${qualification.degree} - ${qualification.institution} (${qualification.year})`}
+                  className={classes.qualificationChip}
+                  color="primary"
+                  variant="outlined"
+                />
+              ))}
+            </div>
             <Divider className={classes.divider} />
             <Typography variant="h6" gutterBottom>Emergency Contact</Typography>
             <div className={classes.detailItem}>

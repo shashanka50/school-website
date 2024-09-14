@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Grid, Typography } from '@material-ui/core';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Grid, IconButton } from '@material-ui/core';
+import { Add as AddIcon, Remove as RemoveIcon } from '@material-ui/icons';
 import axios from 'axios';
 
 function AddTeacherModal({ open, handleClose }) {
@@ -11,7 +12,7 @@ function AddTeacherModal({ open, handleClose }) {
     dateOfBirth: '',
     employeeId: '',
     subjects: '',
-    qualifications: '',
+    qualifications: [{ degree: '', institution: '', year: '' }],
     dateOfJoining: '',
     contactNumber: '',
     email: '',
@@ -20,36 +21,48 @@ function AddTeacherModal({ open, handleClose }) {
   });
 
   const handleChange = (e) => {
-    setTeacherData({ ...teacherData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setTeacherData({ ...teacherData, [name]: value });
   };
 
-  const [error, setError] = useState(null); // Initialize error state
+  const handleQualificationChange = (index, field, value) => {
+    const newQualifications = teacherData.qualifications.map((q, i) => {
+      if (i === index) {
+        return { ...q, [field]: value };
+      }
+      return q;
+    });
+    setTeacherData({ ...teacherData, qualifications: newQualifications });
+  };
+
+  const addQualification = () => {
+    setTeacherData({
+      ...teacherData,
+      qualifications: [...teacherData.qualifications, { degree: '', institution: '', year: '' }]
+    });
+  };
+
+  const removeQualification = (index) => {
+    const newQualifications = teacherData.qualifications.filter((_, i) => i !== index);
+    setTeacherData({ ...teacherData, qualifications: newQualifications });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Clear previous errors
     try {
-      const token = localStorage.getItem('token'); // Get the token from localStorage
-      const response = await axios.post('/api/auth/register/teacher', teacherData, {
-        headers: {
-          'x-auth-token': token // Include the token in the request headers
-        }
-      });
-      console.log(response.data);
+      const response = await axios.post('/api/admin/add-teacher', teacherData);
+      console.log('Teacher added successfully:', response.data);
       handleClose();
-      // Show success message
     } catch (error) {
-      console.error('Error adding teacher:', error);
-      const errorMessage = error.response?.data?.message || 'An error occurred while adding the teacher';
-      setError(errorMessage);
+      console.error('Error adding teacher:', error.response ? error.response.data : error.message);
     }
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Add New Teacher</DialogTitle>
-      <form onSubmit={handleSubmit}>
-        <DialogContent>
+      <DialogContent>
+        <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -127,16 +140,49 @@ function AddTeacherModal({ open, handleClose }) {
                 required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Qualifications"
-                name="qualifications"
-                value={teacherData.qualifications}
-                onChange={handleChange}
-                helperText="Separate multiple qualifications with commas"
-                required
-              />
+            {teacherData.qualifications.map((qual, index) => (
+              <Grid item xs={12} key={index}>
+                <Grid container spacing={2}>
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      label="Degree"
+                      value={qual.degree}
+                      onChange={(e) => handleQualificationChange(index, 'degree', e.target.value)}
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      label="Institution"
+                      value={qual.institution}
+                      onChange={(e) => handleQualificationChange(index, 'institution', e.target.value)}
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <TextField
+                      fullWidth
+                      label="Year"
+                      type="number"
+                      value={qual.year}
+                      onChange={(e) => handleQualificationChange(index, 'year', e.target.value)}
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={1}>
+                    <IconButton onClick={() => removeQualification(index)} disabled={teacherData.qualifications.length === 1}>
+                      <RemoveIcon />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              </Grid>
+            ))}
+            <Grid item xs={12}>
+              <Button startIcon={<AddIcon />} onClick={addQualification}>
+                Add Qualification
+              </Button>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -196,16 +242,16 @@ function AddTeacherModal({ open, handleClose }) {
               />
             </Grid>
           </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="secondary">
-            Cancel
-          </Button>
-          <Button type="submit" color="primary">
-            Add Teacher
-          </Button>
-        </DialogActions>
-      </form>
+        </form>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="primary">
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} color="primary">
+          Add Teacher
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }

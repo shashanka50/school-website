@@ -8,7 +8,11 @@ const TeacherSchema = new mongoose.Schema({
   lastName: { type: String, required: true },
   employeeId: { type: String, required: true, unique: true },
   subjects: [{ type: String }],
-  qualifications: [{ type: String }],
+  qualifications: [{ 
+    degree: { type: String, required: true },
+    institution: { type: String, required: true },
+    year: { type: Number, required: true }
+  }],
   dateOfJoining: { type: Date, required: true },
   contactNumber: { type: String, required: true },
   email: { type: String, required: true },
