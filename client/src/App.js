@@ -7,6 +7,21 @@ import StudentDashboard from './pages/StudentDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import NavBar from './components/NavBar';
+import axios from 'axios';
+
+// Set up axios to always send the token if it exists
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 const PrivateRoute = ({ component: Component, ...rest }) => {
   const { user } = useContext(AuthContext);

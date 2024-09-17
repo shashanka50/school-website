@@ -1,9 +1,10 @@
 import React, { useState, useContext } from 'react';
 import { Container, Typography, Grid, Paper, Button, makeStyles } from '@material-ui/core';
-import { PersonAdd, Person, MenuBook, School, Settings } from '@material-ui/icons';
+import { PersonAdd, Person, MenuBook, School, Settings, Notifications } from '@material-ui/icons';
 import AddStudentModal from '../components/AddStudentModal';
 import AddTeacherModal from '../components/AddTeacherModal';
 import AddAdminModal from '../components/AddAdminModal';
+import NotificationForm from '../components/NotificationForm';
 import { AuthContext } from '../contexts/AuthContext';
 
 const useStyles = makeStyles((theme) => ({
@@ -57,7 +58,12 @@ function AdminDashboard() {
   const [openStudentModal, setOpenStudentModal] = useState(false);
   const [openTeacherModal, setOpenTeacherModal] = useState(false);
   const [openAdminModal, setOpenAdminModal] = useState(false);
+  const [openNotificationForm, setOpenNotificationForm] = useState(false);
   const { user } = useContext(AuthContext);
+
+  if (!user || user.role !== 'admin') {
+    return <Typography>Access Denied. Admin privileges required.</Typography>;
+  }
 
   const handleOpenModal = (modalType) => {
     switch (modalType) {
@@ -69,6 +75,9 @@ function AdminDashboard() {
         break;
       case 'admin':
         setOpenAdminModal(true);
+        break;
+      case 'notification':
+        setOpenNotificationForm(true);
         break;
       default:
         break;
@@ -86,14 +95,13 @@ function AdminDashboard() {
       case 'admin':
         setOpenAdminModal(false);
         break;
+      case 'notification':
+        setOpenNotificationForm(false);
+        break;
       default:
         break;
     }
   };
-
-  if (!user || user.userType !== 'admin') {
-    return <Typography>Access Denied. Admin privileges required.</Typography>;
-  }
 
   return (
     <div className={classes.root}>
@@ -177,6 +185,29 @@ function AdminDashboard() {
               </Button>
             </Paper>
           </Grid>
+          {/* New Notification Card */}
+          <Grid item xs={12} md={4} className={classes.gridItem}>
+            <Paper elevation={3} className={classes.paper}>
+              <div className={classes.cardContent}>
+                <Notifications className={classes.icon} />
+                <Typography variant="h5" className={classes.cardTitle}>
+                  Add Notification
+                </Typography>
+                <Typography variant="body1" align="center" paragraph>
+                  Create and send notifications to teachers, students, or the whole school.
+                </Typography>
+              </div>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={() => handleOpenModal('notification')}
+                className={classes.button}
+                startIcon={<Notifications />}
+              >
+                Create Notification
+              </Button>
+            </Paper>
+          </Grid>
         </Grid>
       </Container>
       <AddStudentModal 
@@ -190,6 +221,11 @@ function AdminDashboard() {
       <AddAdminModal 
         open={openAdminModal} 
         handleClose={() => handleCloseModal('admin')} 
+      />
+      <NotificationForm
+        open={openNotificationForm}
+        handleClose={() => handleCloseModal('notification')}
+        userRole="admin"
       />
     </div>
   );

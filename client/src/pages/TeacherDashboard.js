@@ -1,8 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Container, Typography, Grid, Paper, makeStyles, CircularProgress, Avatar, Divider, Chip } from '@material-ui/core';
-import { Person, Email, Phone, Home, School, Work, DateRange, LocalLibrary } from '@material-ui/icons';
+import { Container, Typography, Grid, Paper, makeStyles, CircularProgress, Avatar, Divider, Chip, Button } from '@material-ui/core';
+import { Person, Email, Phone, Home, School, Work, DateRange, LocalLibrary, Notifications } from '@material-ui/icons';
 import { AuthContext } from '../contexts/AuthContext';
 import axios from 'axios';
+import NotificationForm from '../components/NotificationForm';
+import { useHistory } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -59,50 +61,84 @@ const useStyles = makeStyles((theme) => ({
   qualificationChip: {
     margin: theme.spacing(0.5),
   },
+  notificationSection: {
+    marginTop: theme.spacing(4),
+  },
+  notification: {
+    marginBottom: theme.spacing(2),
+    padding: theme.spacing(2),
+  },
 }));
 
 function TeacherDashboard() {
   const classes = useStyles();
   const { user } = useContext(AuthContext);
   const [teacherDetails, setTeacherDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [openNotificationModal, setOpenNotificationModal] = useState(false);
+  const history = useHistory();
+
+  const handleUnauthorized = () => {
+    localStorage.removeItem('token');
+    history.push('/login');
+  };
 
   useEffect(() => {
-    const fetchTeacherDetails = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        console.log('Fetching teacher details with token:', token);
-        const response = await axios.get('/api/teacher/details', {
-          headers: { 'x-auth-token': token }
-        });
-        console.log('Fetched teacher details:', response.data);
-        setTeacherDetails(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching teacher details:', err.response ? err.response.data : err.message);
-        setError(err.response ? err.response.data.message : 'Failed to load teacher details');
-        setLoading(false);
-      }
-    };
-
     fetchTeacherDetails();
+    fetchNotifications();
   }, []);
 
-  if (loading) {
-    return (
-      <Container className={classes.root} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <CircularProgress />
-      </Container>
-    );
-  }
+  const fetchTeacherDetails = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log('Token used for teacher details:', token);
+      if (!token) {
+        throw new Error('No token found');
+      }
+      const response = await axios.get('/api/teacher/details', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setTeacherDetails(response.data);
+    } catch (error) {
+      console.error('Error fetching teacher details:', error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        handleUnauthorized();
+      }
+    }
+  };
 
-  if (error) {
-    return (
-      <Container className={classes.root}>
-        <Typography color="error">{error}</Typography>
-      </Container>
-    );
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+      const response = await axios.get('/api/notifications/teacher', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setNotifications(response.data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error.response?.data || error.message);
+      // Handle the error appropriately
+    }
+  };
+
+  const handleNotificationAdded = (newNotification) => {
+    setNotifications([newNotification, ...notifications]);
+    setOpenNotificationModal(false);
+  };
+
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      await axios.delete(`/api/notifications/${notificationId}`);
+      setNotifications(notifications.filter(n => n._id !== notificationId));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
+  if (!teacherDetails) {
+    return <CircularProgress />;
   }
 
   return (
@@ -171,6 +207,37 @@ function TeacherDashboard() {
           </Paper>
         </Grid>
       </Grid>
+      
+      <div className={classes.notificationSection}>
+        <Typography variant="h5" gutterBottom>
+          <Notifications className={classes.icon} />
+          Notifications
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpenNotificationModal(true)}
+        >
+          Add Notification
+        </Button>
+        {notifications.map((notification) => (
+          <Paper key={notification._id} className={classes.notification}>
+            <Typography variant="h6">{notification.title}</Typography>
+            <Typography>{notification.message}</Typography>
+            <Typography variant="caption">
+              Created at: {new Date(notification.createdAt).toLocaleString()}
+            </Typography>
+            <Button onClick={() => handleDeleteNotification(notification._id)}>Delete</Button>
+          </Paper>
+        ))}
+      </div>
+      
+      <NotificationForm
+        open={openNotificationModal}
+        handleClose={() => setOpenNotificationModal(false)}
+        onNotificationAdded={handleNotificationAdded}
+        userRole="teacher"
+      />
     </Container>
   );
 }

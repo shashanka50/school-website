@@ -74,25 +74,17 @@ function Login() {
     setPassword('');
   };
 
-  const handleLogin = async () => {
-    setError('');
+  const handleLogin = async (e) => {
+    e.preventDefault();
     try {
-      if (!username || !password) {
-        throw new Error('Username and password are required');
-      }
-
-      console.log('Attempting login with:', { username, password, userType: currentUserType });
       const response = await axios.post('/api/auth/login', { username, password, userType: currentUserType });
       console.log('Login response:', response.data);
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      login({ ...user, role: currentUserType }); // Store the user's role
-      handleCloseModal();
-      history.push('/'); // Redirect to home page after login
+      localStorage.setItem('token', response.data.token);
+      login(response.data.user, response.data.token);
+      history.push(`/${currentUserType}-dashboard`);
     } catch (error) {
-      console.error('Login error:', error.response ? error.response.data : error.message);
-      setError('Invalid username or password');
-      setOpenSnackbar(true);
+      console.error('Login error:', error.response?.data || error.message);
+      setError('Invalid credentials');
     }
   };
 

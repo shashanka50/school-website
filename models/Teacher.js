@@ -30,7 +30,11 @@ TeacherSchema.pre('save', async function(next) {
 
 // Method to compare passwords
 TeacherSchema.methods.comparePassword = async function(candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw new Error(error);
+  }
 };
 
 module.exports = mongoose.model('Teacher', TeacherSchema);

@@ -11,6 +11,8 @@ router.post('/login', async (req, res) => {
   const { username, password, userType } = req.body;
   
   try {
+    console.log('Login attempt:', { username, userType });
+    
     let user;
     let Model;
     if (userType === 'student') {
@@ -24,12 +26,16 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid user type' });
     }
 
+    console.log('Selected model:', Model.modelName);
+
     user = await Model.findOne({ username });
 
     if (!user) {
       console.log('User not found:', username, userType);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
+
+    console.log('User found:', user._id);
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
@@ -40,23 +46,29 @@ router.post('/login', async (req, res) => {
     const payload = {
       user: {
         id: user._id,
-        username: user.username,
-        userType // Make sure this is correctly set
+        role: userType,
       }
     };
 
     jwt.sign(
       payload,
-      'your_jwt_secret',
+      process.env.JWT_SECRET,
       { expiresIn: '1h' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token, user: payload.user });
+        res.json({
+          token,
+          user: {
+            id: user._id,
+            name: user.firstName + ' ' + user.lastName,
+            role: userType
+          }
+        });
       }
     );
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
@@ -105,5 +117,7 @@ router.post('/register/admin', auth, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+console.log('Teacher model:', Teacher);
 
 module.exports = router;
