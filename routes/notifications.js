@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
+const Student = require('../models/Student');
 
 // Create a new notification
 router.post('/', auth, async (req, res) => {
@@ -49,6 +50,37 @@ router.get('/admin', auth, async (req, res) => {
     res.json(notifications);
   } catch (error) {
     console.error('Error fetching admin notifications:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Add this new route to your existing notifications.js file
+router.get('/student', auth, async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const student = await Student.findById(studentId);
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    const notifications = await Notification.find({
+      $or: [
+        { 'targetAudience.wholeSchool': true },
+        { 
+          'targetAudience.classes': { 
+            $elemMatch: { 
+              grade: student.grade, 
+              section: student.section 
+            } 
+          } 
+        }
+      ]
+    }).sort({ createdAt: -1 });
+
+    res.json(notifications);
+  } catch (error) {
+    console.error('Error fetching student notifications:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

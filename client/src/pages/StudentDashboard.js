@@ -54,38 +54,38 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// Hardcoded notices for now
-const notices = [
-  { id: 1, title: 'Upcoming Science Fair', content: 'The annual science fair will be held next month. Start preparing your projects!' },
-  { id: 2, title: 'Parent-Teacher Meeting', content: 'Parent-teacher meetings are scheduled for next week. Please inform your parents.' },
-  { id: 3, title: 'Holiday Announcement', content: 'The school will be closed next Monday for a public holiday.' },
-];
-
 function StudentDashboard() {
   const classes = useStyles();
   const { user } = useContext(AuthContext);
   const [studentDetails, setStudentDetails] = useState(null);
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchStudentDetails = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('/api/student/details', {
-          headers: { 'x-auth-token': token }
-        });
-        console.log('Fetched student details:', response.data);
-        setStudentDetails(response.data);
+        const [studentResponse, notificationsResponse] = await Promise.all([
+          axios.get('/api/student/details', {
+            headers: { 'x-auth-token': token }
+          }),
+          axios.get('/api/notifications/student', {
+            headers: { 'x-auth-token': token }
+          })
+        ]);
+
+        setStudentDetails(studentResponse.data);
+        setNotifications(notificationsResponse.data);
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching student details:', err);
-        setError('Failed to load student details');
+        console.error('Error fetching data:', err);
+        setError('Failed to load data');
         setLoading(false);
       }
     };
 
-    fetchStudentDetails();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -148,17 +148,24 @@ function StudentDashboard() {
               <Notifications className={classes.icon} style={{ verticalAlign: 'middle' }} />
               Notifications
             </Typography>
-            {notices.map((notice) => (
-              <React.Fragment key={notice.id}>
-                <Typography variant="subtitle1" className={classes.noticeTitle}>
-                  {notice.title}
-                </Typography>
-                <Typography variant="body2" className={classes.noticeContent}>
-                  {notice.content}
-                </Typography>
-                <Divider className={classes.divider} />
-              </React.Fragment>
-            ))}
+            {notifications.length > 0 ? (
+              notifications.map((notice) => (
+                <React.Fragment key={notice._id}>
+                  <Typography variant="subtitle1" className={classes.noticeTitle}>
+                    {notice.title}
+                  </Typography>
+                  <Typography variant="body2" className={classes.noticeContent}>
+                    {notice.message}
+                  </Typography>
+                  <Typography variant="caption">
+                    Created at: {new Date(notice.createdAt).toLocaleString()}
+                  </Typography>
+                  <Divider className={classes.divider} />
+                </React.Fragment>
+              ))
+            ) : (
+              <Typography>No notifications available.</Typography>
+            )}
           </Paper>
         </Grid>
       </Grid>
